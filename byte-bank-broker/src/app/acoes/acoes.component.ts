@@ -1,24 +1,29 @@
-import { Component, OnInit } from '@angular/core';
+import { Component} from '@angular/core';
 import { FormControl } from '@angular/forms';
+import {switchMap, tap} from 'rxjs/operators'
+import {merge} from 'rxjs'
 
 import { AcoesService } from './acoes.service';
-import {Acoes} from './modelo/acoes';
+
 
 @Component({
   selector: 'app-acoes',
   templateUrl: './acoes.component.html',
   styleUrls: ['./acoes.component.css'],
 })
-export class AcoesComponent implements OnInit {
+export class AcoesComponent {
 
   acoesInput = new FormControl();
-  acoes : Acoes;
+  todasAcoes$ =  this.acoesService.getAcoes().pipe(tap(() => {console.log('Fluxo inicial')}));
+  filtroPeloInput$ =  this.acoesInput.valueChanges.pipe(
+    tap(()=> {console.log('Fluxo do Filtro')}),
+    switchMap((valorDigitado)=> this.acoesService.getAcoes(valorDigitado))
+  )
+  acoes$ = merge(this.todasAcoes$, this.filtroPeloInput$)
+
 
   constructor(private acoesService: AcoesService) {}
 
-  ngOnInit(): void {
-    this.acoesService.getAcoes().subscribe((acoes) => {
-      this.acoes = acoes;
-    })
-  }
 }
+
+
